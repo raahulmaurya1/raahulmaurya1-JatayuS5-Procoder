@@ -61,6 +61,9 @@
   - [Class diagram](#class-diagram)
   - [Layer Model](#layer-model)
   - [Key Design Decisions](#key-design-decisions)
+  - [Observability & Error Tracking](#-observability--error-tracking)
+  - [OCR & Document Extraction Pipeline](#-ocr--document-extraction-pipeline)
+- [Cloud Infrastructure & Deployment](#-cloud-infrastructure--deployment)
 - [Setup & Installation](#-setup--installation)
   - [Prerequisites](#prerequisites)
 - [Technology Stack](#technology-stack)
@@ -106,6 +109,11 @@ This system is a fully autonomous **Agentic AI Decision Engine** built for regul
 | Synchronous monolith | Async agents + Celery background workers |
 | No memory | pgvector semantic memory + Redis hot state |
 | Manual review always | Autonomous APPROVE / REVIEW / REJECT decisions |
+| Basic print/logging | Loguru structured logging + Sentry error tracking |
+| Self-hosted MinIO storage | Supabase managed Storage (S3-compatible, boto3) |
+| Local Postgres | Supabase managed PostgreSQL + pgvector |
+| Tesseract-only OCR | OCR.space 4.0 + Gemini Vision AI tiered pipeline |
+| Local infrastructure | AWS EC2 + S3 + CloudFront + Upstash Redis |s |
 
 ### What "Agentic" means here
 
@@ -118,9 +126,8 @@ This system is a fully autonomous **Agentic AI Decision Engine** built for regul
 
 ## ⚙️ Core Architecture
 
+<img src="https://github.com/raahulmaurya1/raahulmaurya1-JatayuS5-Procoder/blob/4d9b0ef20454458b35b75ec691bec9cf7c65790b/architecture_svg.svg" alt="My Image" style="width: 100%; height: auto; max-width: 500px;">
 
-<img src="https://github.com/raahulmaurya1/raahulmaurya1-JatayuS5-Procoder/blob/4d9b0ef20454458b35b75ec691bec9cf7c65790b/architecture_svg.svg
-" alt="My Image" style="width: 100%; height: auto; max-width: 500px;">
 
 *Overview*
 
@@ -130,7 +137,7 @@ This system is a fully autonomous **Agentic AI Decision Engine** built for regul
 ├───────────────────┬──────────────────────┬───────────────────────────────────┤
 │   FRONTEND LAYER  │   ORCHESTRATION      │   INTELLIGENCE LAYER              │
 │                   │                      │                                   │
-│  React / TSX UI   │  DecisionAgent       │  Google Gemini 3.1 Flash Lite     │
+│  React / TSX UI   │  DecisionAgent       │  Google Gemini 2.0 Flash          │
 │  Admin Dashboard  │  (Master Brain)      │  text-embedding-004               │
 │  RiskReviewPage   │  LangGraph FSM       │  Gemini AML Analyst (Tier 3)      │
 └───────────────────┴──────────────────────┴───────────────────────────────────┘
@@ -148,16 +155,26 @@ This system is a fully autonomous **Agentic AI Decision Engine** built for regul
 │                         EXECUTION LAYER                                     │
 │                                                                             │
 │  FastAPI (async)  │  Celery Workers  │  OTP Service  │  Face Verification   │
-│  MinIO Storage    │  GeoIP Service   │  OCR Engine   │  Signature Matcher   │
+│  Supabase Storage │  OCR.space 4.0   │  OCR Engine   │  Signature Matcher   │
 └─────────────────────────────────────────────────────────────────────────────┘
           │                   │                          │
           ▼                   ▼                          ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                         PERSISTENCE LAYER                                   │
+│                      PERSISTENCE & OBSERVABILITY LAYER                      │
 │                                                                             │
-│  PostgreSQL + pgvector  │  Redis (hot state)  │  MinIO (documents)          │
+│  Supabase PostgreSQL + pgvector  │  Redis (hot state)  │  Upstash Redis     │
+│  Supabase Storage (boto3 S3)     │  Loguru Logging     │  Sentry Tracking   │
 │  user_initial / sessions / user_documents / risk_evaluations                │
 │  agent_context (768-dim) / additional_info                                  │
+└─────────────────────────────────────────────────────────────────────────────┘
+          │
+          ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         CLOUD INFRASTRUCTURE (AWS)                          │
+│                                                                             │
+│  EC2 t3.medium (FastAPI + Celery)  │  S3 (React frontend)                   │
+│  CloudFront CDN (HTTPS)            │  Nginx (SSL + reverse proxy)           │
+│  Let's Encrypt (Certbot)           │  Namecheap DNS  →  onboard-ai.me       │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -165,17 +182,20 @@ This system is a fully autonomous **Agentic AI Decision Engine** built for regul
 
 | Component | Role | Technology |
 |---|---|---|
-| **DecisionAgent (Core Brain)** | Master LLM orchestrator; reasons about state and selects tools | Google Gemini + Function Calling |
+| **DecisionAgent (Core Brain)** | Master LLM orchestrator; reasons about state and selects tools | Google Gemini 2.0 Flash + Function Calling |
 | **Tool Registry** | 11 declarative Python function schemas exposed to Gemini | Native Gemini function-calling API |
-| **LangGraph FSM** | Compiled state machine for deterministic flow control and risk routing | LangGraph `StateGraph` |
+| **LangGraph FSM** | Compiled state machine for deterministic flow control and risk routing | LangGraph `StateGraph` v1.1.6 |
 | **Risk Engine** | 3-tier pipeline: hard-kill → weighted matrix → Gemini AML | Custom Python + Gemini |
-| **Memory Layer** | Semantic search over historical edge cases | pgvector (768-dim Gemini embeddings) |
-| **Hot State** | Per-session volatile state during active onboarding | Redis (30-min TTL) |
-| **Document Store** | OCR-processed KYC document artifacts | MinIO S3-compatible |
-| **Background Workers** | Async document extraction and processing | Celery + Redis broker |
+| **Memory Layer** | Semantic search over historical edge cases | pgvector (768-dim Gemini embeddings) on Supabase |
+| **Hot State** | Per-session volatile state during active onboarding | Local Redis (30-min TTL) |
+| **Document Store** | KYC document artifacts — two lifecycle buckets | Supabase Storage (boto3 S3 client) |
+| **Background Workers** | Async document extraction and face verification | Celery 5.6.3 + Local Redis broker |
+| **Remote Task Backend** | Celery result backend (TLS) | Upstash Redis (rediss://) |
+| **Structured Logging** | Request-level telemetry, agent decision traces | Loguru 0.7.3 |
+| **Error Tracking** | Production exception capture + Celery silent failures | Sentry (sentry-sdk[fastapi] 2.59.0) |
+| **OCR Pipeline** | Document text extraction — Tier 0 + Tier 2 | OCR.space 4.0 + Gemini Vision AI |
 
 ---
-
 ## 🔄 Execution Flow (Agent Lifecycle)
 
 Every user message passes through an 8-phase reasoning loop:
@@ -195,8 +215,8 @@ Every user message passes through an 8-phase reasoning loop:
    └─ source == "face_poll"        →  Redis face verification result check
 
  Phase 3: STATE INITIALIZATION
-   ├─ PostgreSQL: Load UserInitial record (status, face_verified, account_type)
-   ├─ Redis: Check pending_auth:{session_ulid} for volatile auth state
+   ├─ Supabase PostgreSQL: Load UserInitial record (status, face_verified, account_type)
+   ├─ Local Redis: Check pending_auth:{session_ulid} for volatile auth state
    └─ Build: Dynamic context dict (isAuthenticated, phoneVerified, kycUploaded, etc.)
 
  Phase 4: GEMINI REASONING LOOP
@@ -216,6 +236,7 @@ Every user message passes through an 8-phase reasoning loop:
 
  Phase 8: FINAL RESPONSE
    └─ Structured JSON: { ui_action, agent_message, session_ulid, extracted_data }
+      → Loguru traces every agent action; Sentry captures any exception
       → Frontend renders the correct screen
 ```
 
@@ -310,14 +331,15 @@ The **3-Tier Deterministic-Cognitive Risk Pipeline**. The most sophisticated com
 
 ### 4. 🧬 Memory Agent — `app/agents/memory_agent.py`
 
-Provides **semantic long-term memory** using pgvector embeddings.
+Provides **semantic long-term memory** using pgvector embeddings on Supabase.
 
 | Attribute | Detail |
 |---|---|
 | **Purpose** | Store and retrieve historical edge cases for consistent risk decisions |
 | **Model** | `text-embedding-004` (768-dimensional Gemini embeddings) |
-| **Storage** | `agent_context` table with IVFFLAT cosine distance index |
+| **Storage** | `agent_context` table on Supabase with IVFFLAT cosine distance index |
 | **Search** | Nearest-neighbor cosine similarity via `search_similar_cases` tool |
+| **Connection** | SSL-enforced (`sslmode=require`) asyncpg connection to Supabase PostgreSQL |
 
 ---
 
@@ -337,15 +359,16 @@ Implements the **Strategy Pattern** for Re-KYC and Account Reactivation flows.
 
 ### 6. 📄 Extraction Agent — `app/agents/extraction_agent.py`
 
-Runs OCR on uploaded KYC documents via Celery background workers.
+Runs the multi-tier OCR pipeline on uploaded KYC documents via Celery background workers.
 
 | Attribute | Detail |
 |---|---|
 | **Purpose** | Extract structured fields from PAN, Aadhaar, GST certificates |
+| **Tier 0** | OCR.space 4.0 (LSTM neural network backend) — fast offline text extraction |
+| **Tier 2** | Gemini Vision AI — robust extraction for complex/poor quality documents |
 | **Workers** | `process_documents_async` (retail) / `process_sme_documents_async` (SME) |
-| **Output** | Combined data written to Redis temp store; polled by frontend |
-| **Library** | PyMuPDF + Pytesseract + Pillow |
-
+| **Output** | Combined data written to Redis temp store; polled by frontend; persisted to Supabase |
+| **Preprocessing** | PIL contrast enhancement (2x multiplier), grayscale conversion, 200 DPI PDF render |
 ---
 
 ### 7. ✅ Validation Agent — `app/agents/validation_agent.py`
@@ -644,8 +667,7 @@ LAYER 3 — RISK & VECTOR INTELLIGENCE
   • risk_evaluations  → ML feature store (128-dim vector, bucketed PII-free data)
   • agent_context     → Semantic memory (768-dim Gemini embeddings, IVFFLAT index)
 ```
-
-### Key Design Decisions
+# Key Design Decisions
 
 | Decision | Rationale |
 |---|---|
@@ -654,6 +676,166 @@ LAYER 3 — RISK & VECTOR INTELLIGENCE
 | Anonymized `risk_evaluations` | Privacy compliance — age buckets, NIC codes, no raw PII |
 | Dual vector tables | 128-dim for ML similarity, 768-dim for semantic recall |
 | Async fire-and-forget storage | Risk data write never blocks the onboarding response |
+| Supabase managed hosting | No self-hosted DB/storage containers; SSL enforced at service level |
+| Two lifecycle buckets | `temp/` (staging) and `verified/` (post-validation) on Supabase Storage |
+
+---
+
+## 📊 Observability & Error Tracking
+
+The system has moved beyond scattered `print` statements to a full production observability stack.
+
+### Structured Logging — Loguru
+
+**Loguru** (`loguru==0.7.3`) is the primary logging framework. All log entries follow structured `[OnboardAI][COMPONENT]` prefixes for queryable log aggregation.
+
+```python
+from loguru import logger
+
+# 10 MB rotating log files, 5 backups retained
+logger.add("logs/app.log", rotation="10 MB", retention=5, level="INFO")
+
+# Component-prefixed structured logging
+logger.info("[OnboardAI][RiskAgent] Tier 2 score=35, flags=['late_night_activity']")
+logger.info("[OnboardAI][ExtractionAgent] OCR.space extracted 6 fields from PAN")
+logger.error("[OnboardAI][FaceVerification] DeepFace cold-start exceeded 5s")
+```
+
+Key log series:
+- `[RiskHook]` — traces every risk routing decision (score + category + flags)
+- `[POLL]` — tracks async extraction state transitions
+- `[Lifecycle]` — traces every Re-KYC / reactivation operation with row counts
+- `[OnboardAI][tool_name]` — every Gemini tool dispatch with iteration index
+
+### Error Tracking — Sentry
+
+**Sentry** (`sentry-sdk[fastapi]==2.59.0`) is integrated for production exception capture. Silent failures in decoupled Celery tasks (OCR, face verification) are explicitly caught and reported.
+
+```python
+import sentry_sdk
+from sentry_sdk.integrations.loguru import LoguruIntegration
+
+sentry_sdk.init(
+    dsn="YOUR_SENTRY_DSN",
+    integrations=[
+        LoguruIntegration(
+            level=logging.INFO,         # INFO+ captured as breadcrumbs
+            event_level=logging.ERROR   # ERROR+ sent as Sentry events
+        )
+    ],
+    traces_sample_rate=1.0,
+)
+```
+
+Sentry captures:
+- Unhandled exceptions in FastAPI request handlers
+- Silent failures inside Celery tasks (`process_documents_async`, `verify_face_liveness_async`)
+- Gemini API timeouts and quota errors (HTTP 429)
+- High-severity Loguru ERROR events (auto-escalated to ops via email + Slack)
+
+**Note:** Full distributed trace correlation IDs across the LLM decision chain and Celery workers remain a gap. OpenTelemetry / Loki integration is planned before scaling beyond prototype.
+
+---
+
+## 🔍 OCR & Document Extraction Pipeline 
+
+The extraction pipeline uses a **multi-tier approach** combining fast local extraction with AI vision fallback.
+
+### Tier 0 — OCR.space 4.0 (Primary)
+
+**OCR.space** replaces the previous Tesseract-only setup as the primary offline OCR engine:
+
+| Setting | Value |
+|---|---|
+| Backend | LSTM Neural Network (v4.0+) |
+| Language | English (`eng`) |
+| Image preprocessing | Grayscale conversion + 2x contrast enhancement (PIL) |
+| PDF rendering | PyMuPDF at 200 DPI → PNG → OCR |
+| Concurrency | Thread-safe per-session instances |
+
+### Tier 2 — Gemini Vision AI (Fallback)
+
+Gemini Vision is invoked when OCR.space confidence is below threshold or fields are missing:
+
+```
+Document Image (PNG)
+       ↓
+OCR.space 4.0 (Tier 0)  →  confidence ≥ 90%  →  Use result directly
+       ↓ (if confidence < 70%)
+Gemini Vision AI (Tier 2)  →  Structured JSON extraction
+       ↓
+Validation Agent  →  cross_check_documents() (name + DOB + PIN consistency)
+       ↓
+Combined Data  →  Redis cache (TTL 3600s)  →  Supabase PostgreSQL
+```
+
+### Filename-Based Document Routing
+
+```
+filename contains 'pan'    → PAN extractor  (prevents GSTIN reading as PAN)
+filename contains 'aadhaar'→ Aadhaar extractor
+filename contains 'gst'    → GST extractor  (separate gst_data key, never mixed)
+else                       → Generic KYC extractor
+```
+
+### SME Concurrent Processing
+
+SME documents (PAN + Aadhaar + GST) are processed in parallel:
+
+```python
+with ThreadPoolExecutor(max_workers=3) as executor:
+    kyc_future = executor.submit(extract_kyc_docs, kyc_files)
+    gst_future = executor.submit(extract_gst_doc, gst_files)
+    # Results merged: combined_data (KYC) + gst_data (separate)
+```
+
+---
+
+## ☁️ Cloud Infrastructure & Deployment
+
+The system is live at **[https://onboard-ai.me](https://onboard-ai.me)**
+
+### Production Stack (AWS)
+
+| Service | Role | Detail |
+|---|---|---|
+| **AWS EC2 t3.medium** | Compute | FastAPI (Uvicorn, 1 worker) + Celery (concurrency=1, `-P solo`) |
+| **Nginx** | Reverse proxy | SSL termination, `/api/*` → `:8000`, React frontend from S3 |
+| **Let's Encrypt (Certbot)** | TLS | Free HTTPS certificate for `onboard-ai.me` |
+| **AWS S3** | Frontend hosting | React build artifacts (static) |
+| **AWS CloudFront** | CDN | HTTPS global distribution for React frontend |
+| **Namecheap** | DNS | Domain registrar for `onboard-ai.me` (GitHub Student Pack) |
+| **Upstash Redis** | Remote task backend | Celery result backend via TLS (`rediss://`) |
+| **Supabase** | Managed DB + Storage | PostgreSQL + pgvector + S3-compatible object storage |
+
+### Process Management
+
+```bash
+# FastAPI — managed via nohup + crontab for auto-restart on reboot
+nohup gunicorn app.main:app -w 1 -k uvicorn.workers.UvicornWorker \
+    --bind 0.0.0.0:8000 &
+
+# Celery — -P solo prevents fork-safety deadlocks with ML model pre-warming
+nohup celery -A app.workers.celery_app worker \
+    --concurrency=1 -P solo --loglevel=info &
+```
+
+### Development Environment (Docker Compose)
+
+```bash
+# Terminal 1: Full stack locally
+docker-compose up   # FastAPI + Celery + Local Redis
+
+# Supabase (DB + Storage) requires no local container
+# Configure .env with Supabase connection strings
+```
+
+### Supabase Storage Buckets
+
+| Bucket | Purpose | Policy |
+|---|---|---|
+| `temp/` | Staging — documents pending extraction | Private, TTL-based cleanup |
+| `verified/` | Post-validation — archived KYC documents | Private with audit logging |
 
 ---
 
@@ -662,36 +844,164 @@ LAYER 3 — RISK & VECTOR INTELLIGENCE
 ### Prerequisites
 
 - Python 3.11+
-- PostgreSQL 15+ with `pgvector` extension
-- Redis 7+
-- MinIO (or any S3-compatible store)
+- PostgreSQL 15+ with `pgvector` extension (or use Supabase managed)
+- Redis 7+ (local for broker/cache)
+- Supabase account (PostgreSQL + Storage)
 - Google AI API key (Gemini)
-- Tesseract OCR installed on the host
+- OCR.space API key
+- 2Factor.in API key (SMS OTP)
+- Sentry DSN (production error tracking)
+- AWS account (EC2, S3, CloudFront) — for production
+
+### 1. Clone Repository
+
+```bash
+git clone https://github.com/your-org/onboardai-backend.git
+cd onboardai-backend
+```
+
+### 2. Create Virtual Environment
+
+```bash
+python -m venv venv
+
+# Windows
+venv\Scripts\activate
+
+# Linux / macOS
+source venv/bin/activate
+```
+
+### 3. Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### 4. Configure Environment Variables
+
+Create a `.env` file in the project root:
+
+```env
+# ── Application ─────────────────────────────────────────────────────────────
+APP_ENV=development
+ENVIRONMENT=development
+LOG_LEVEL=INFO
+DEBUG=False
+
+# ── Supabase Database ────────────────────────────────────────────────────────
+DATABASE_URL=postgresql+asyncpg://<user>:<password>@<supabase-host>:5432/<db>
+
+# ── Redis (Local Broker + Cache) ─────────────────────────────────────────────
+REDIS_URL=redis://localhost:6379/0
+
+# ── Upstash Redis (Remote Celery Result Backend) ─────────────────────────────
+UPSTASH_REDIS_URL=rediss://<upstash-host>:6379
+
+# ── Supabase Storage (S3-compatible via boto3) ───────────────────────────────
+SUPABASE_URL=https://<project>.supabase.co
+SUPABASE_KEY=your_supabase_service_role_key
+SUPABASE_S3_ENDPOINT=https://<project>.supabase.co/storage/v1/s3
+SUPABASE_S3_ACCESS_KEY=your_s3_access_key
+SUPABASE_S3_SECRET_KEY=your_s3_secret_key
+SUPABASE_BUCKET_TEMP=temp
+SUPABASE_BUCKET_VERIFIED=verified
+
+# ── Google AI ────────────────────────────────────────────────────────────────
+GEMINI_API_KEY=your_gemini_api_key
+
+# ── OCR.space ────────────────────────────────────────────────────────────────
+OCR_SPACE_API_KEY=your_ocrspace_api_key
+
+# ── SMS OTP ──────────────────────────────────────────────────────────────────
+TWO_FACTOR_API_KEY=your_2factor_api_key
+
+# ── Email (Gmail SMTP) ───────────────────────────────────────────────────────
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=465
+SMTP_USER=your_email@gmail.com
+SMTP_PASS=your_app_specific_password
+
+# ── Face Verification ────────────────────────────────────────────────────────
+FACE_MODEL_NAME=OpenFace
+FACE_SIMILARITY_THRESHOLD=0.6
+BLINK_EAR_THRESHOLD=0.2
+BLINK_CONSEC_FRAMES=3
+MIN_BLINKS_FOR_LIVENESS=1
+DEEPFACE_HOME=~/.deepface
+
+# ── Sentry (Production Error Tracking) ───────────────────────────────────────
+SENTRY_DSN=https://your-sentry-dsn@sentry.io/project-id
+
+# ── Log Paths ────────────────────────────────────────────────────────────────
+GUNICORN_LOG_PATH=/var/log/gunicorn/access.log
+CELERY_LOG_PATH=/var/log/celery/worker.log
+
+# ── Session & OTP ────────────────────────────────────────────────────────────
+SESSION_TIMEOUT_MINUTES=30
+OTP_EXPIRY_SECONDS=180
+OTP_MAX_ATTEMPTS=3
+```
+
+### 5. Initialize Database
+
+```bash
+# Enable pgvector (if using self-hosted PostgreSQL)
+psql -U postgres -c "CREATE EXTENSION IF NOT EXISTS vector;"
+
+# Run Alembic migrations
+alembic upgrade head
+```
+
+### 6. Start Services
+
+```bash
+# Terminal 1: FastAPI backend
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+# Terminal 2: Celery worker (document extraction + face verification)
+celery -A app.workers.celery_app worker --loglevel=info --concurrency=1 -P solo
+
+# Terminal 3: Admin dashboard (React)
+cd frontend_admin && npm install && npm run dev
+```
+
+---
 
 ## Technology Stack
 
 | Layer | Technology | Version |
-| :--- | :--- | :--- |
-| **API Framework** | FastAPI + Uvicorn / Gunicorn | Latest stable |
-| **Agent Orchestration** | LangGraph | Latest stable |
-| **Primary Database** | PostgreSQL + AsyncPG | 12+ |
-| **Vector Search** | pgvector | Latest stable |
-| **Cache + Broker** | Redis | Latest stable |
-| **Task Queue** | Celery | Latest stable |
-| **Object Storage** | MinIO (S3-compatible) | Latest stable |
-| **LLM + Vision** | Google Gemini 2.0 Flash Lite | Current |
-| **Embeddings** | Google text-embedding-004 | Current |
-| **Face Recognition** | DeepFace + OpenFace | Latest stable |
-| **Eye Detection** | MediaPipe | Latest stable |
-| **OCR** | Tesseract | 5.x |
-| **PDF Processing** | PyMuPDF (fitz) | Latest stable |
-| **Image Processing** | Pillow (PIL) | Latest stable |
-| **File Detection** | Magika | Latest stable |
-| **String Matching** | RapidFuzz | Latest stable |
-| **Data Validation** | Pydantic | v2 |
-| **Database Migrations** | Alembic | Latest stable |
-| **Unique Identifiers** | Python-ULID | Latest stable |
-
+|:---|:---|:---|
+| **Cloud Infrastructure** | AWS EC2 (t3.medium) | Hosts FastAPI + Celery |
+| **CDN** | AWS CloudFront | React frontend distribution |
+| **Frontend Hosting** | AWS S3 | Static React build |
+| **Reverse Proxy** | Nginx + Let's Encrypt (Certbot) | SSL + routing |
+| **Domain** | Namecheap | `onboard-ai.me` (GitHub Student Pack) |
+| **API Framework** | FastAPI + Uvicorn / Gunicorn | 0.135.3 / 0.43.0 / 25.3.0 |
+| **Agent Orchestration** | LangGraph | 1.1.6 |
+| **Primary Database** | Supabase (PostgreSQL + AsyncPG) | Postgres 12+, AsyncPG 0.31.0 |
+| **ORM + Migrations** | SQLAlchemy 2.0 + Alembic | 2.0.49 / 1.18.4 |
+| **Vector Search** | Supabase pgvector | IVFFLAT cosine index |
+| **Cache + Local Broker** | Local Redis | 7.4.0 |
+| **Remote Result Backend** | Upstash Redis | TLS (`rediss://`) |
+| **Task Queue** | Celery | 5.6.3 |
+| **Object Storage** | Supabase Storage (boto3 S3 client) | boto3 1.43.6 |
+| **LLM + Vision** | Google Gemini 2.0 Flash Lite | google-generativeai 0.8.6 |
+| **Embeddings** | Google text-embedding-004 | google-generativeai 0.8.6 |
+| **Face Recognition** | DeepFace + OpenFace | 0.0.99 |
+| **Eye Detection** | MediaPipe | 0.10.33 |
+| **OCR (Primary)** | OCR.space 4.0 (LSTM backend) | 4.0+ |
+| **PDF Processing** | PyMuPDF (fitz) | 1.27.2.2 |
+| **Image Processing** | Pillow (PIL) | 12.2.0 |
+| **File Detection** | Magika | 1.0.2 |
+| **String Matching** | RapidFuzz | 3.12.1 |
+| **Data Validation** | Pydantic | 2.12.5 |
+| **Structured Logging** | Loguru | 0.7.3 |
+| **Error Tracking** | Sentry (sentry-sdk[fastapi]) | 2.59.0 |
+| **API Rate Limiting** | slowapi | 0.1.9 |
+| **Unique Identifiers** | Python-ULID | 3.1.0 |
+| **Frontend Framework** | React + TypeScript + Vite | Latest stable |
+| **Frontend Styling** | TailwindCSS | Latest stable |
 ### 1. Clone Repository
 
 ```bash
@@ -937,30 +1247,35 @@ USER: "I want to open a business account for my trading firm"
 ### 1. 🧩 Modularity
 Every agent is a standalone, independently testable Python module with no circular dependencies. The `DecisionAgent` never directly imports service code — it dispatches through the tool handler interface. New tools can be added by declaring a function schema and adding one `elif` branch to `handle_tool_call()`.
 
-### 2.  Fail-Open Resilience
+### 2. ⚡ Fail-Open Resilience
 The entire system is designed to **never block onboarding** due to an AI failure:
 - Risk engine errors → `_risk_action: PROCEED` (applicant flows through)
 - Gemini Tier 3 timeout (15s) → `additional_risk: 0` (no penalty)
-- Face verification store failure → logged and skipped
+- Face verification store failure → logged via Loguru + Sentry, skipped
+- OCR.space failure → falls back to Gemini Vision AI (Tier 2)
 - Celery task dispatch failure → user sees upload retry prompt
 
 ### 3. 🔒 Privacy by Design
-- Raw PII (Aadhaar, PAN, phone) is **regex-redacted** before any log parsing
+- Raw PII (Aadhaar, PAN, phone) is **regex-redacted** before any log parsing by Loguru
 - `risk_evaluations` table stores **only bucketed, anonymized features** (age decade, NIC code, country ISO)
 - No raw identity numbers ever enter the vector store or ML pipeline
-- Session TTL (30 minutes) enforced at database level
+- Session TTL (30 minutes) enforced at Supabase PostgreSQL level
 
 ### 4. 📈 Scalability
-- **Horizontal**: Celery workers scale independently of FastAPI
-- **Async I/O**: `asyncpg` + SQLAlchemy async for non-blocking DB operations
+- **Horizontal**: Celery workers scale independently of FastAPI (prefork on Linux)
+- **Async I/O**: `asyncpg` + SQLAlchemy async for non-blocking Supabase DB operations
 - **IVFFLAT indexes**: Both vector tables use approximate nearest-neighbor indexes for sub-millisecond semantic search at scale
-- **Fire-and-forget**: Risk data persistence never adds to response latency
+- **Fire-and-forget**: Risk data persistence to Supabase never adds to response latency
+- **CDN**: CloudFront distributes React frontend globally with HTTPS
 
 ### 5. 🔭 Observability
-- Structured logging with `[OnboardAI][COMPONENT]` prefixes on every agent action
+- Structured logging via **Loguru** with `[OnboardAI][COMPONENT]` prefixes on every agent action
+- **Sentry** captures all production exceptions including silent Celery task failures
+- High-severity errors auto-escalated to ops team via email + Slack
 - `[RiskHook]` log series traces every risk routing decision with score + category + flags
 - `[POLL]` log series tracks async extraction state transitions
-- `[Lifecycle]` log series traces every lifecycle operation with row counts
+- Risk evaluation records include rich nested telemetry for compliance audit trail
+
 
 ### 6. 🧱 Open-Closed Principle
 The `_apply_risk_routing()` hook wires the risk pipeline into the orchestrator without modifying the pipeline itself. New account types, new risk tiers, and new tools can be added without touching the core agent loop.
@@ -971,14 +1286,16 @@ The `_apply_risk_routing()` hook wires the risk pipeline into the orchestrator w
 
 | Area | Planned Improvement |
 |---|---|
+| **Distributed Tracing** | Implement OpenTelemetry or Loki to reconstruct full LLM → Celery session decision chains in a single query — currently a gap before scaling beyond prototype |
 | **Multi-Agent Collaboration** | Introduce a Supervisor Agent that dynamically spawns sub-agents for parallel document processing across multiple KYC types simultaneously |
-| **Memory Optimization** | Implement sliding-window context compression for long sessions; use Redis TTL-based cache warming for frequent edge case patterns |
-| **Autonomous Planning** | Upgrade from reactive single-step reasoning to multi-turn planning using Gemini's extended context window — allow the agent to pre-plan the remaining steps |
+| **Memory Optimization** | Implement sliding-window context compression for long sessions; Redis TTL-based cache warming for frequent edge case patterns |
+| **Autonomous Planning** | Upgrade from reactive single-step reasoning to multi-turn planning using Gemini's extended context window |
 | **Model Routing** | Add a model selector that switches between Gemini Flash Lite (speed) and Gemini Pro (accuracy) based on risk score proximity to thresholds |
 | **Streaming Responses** | Implement Server-Sent Events (SSE) for real-time agent reasoning traces visible in the UI |
-| **Continuous Learning** | Use the `actual_outcome` field in `risk_evaluations` to feed verified labels back into a fine-tuned risk classifier |
 | **Multi-Jurisdictional** | Abstract country-specific AML rules into pluggable rule modules per jurisdiction |
 | **Audit Trail** | Full cryptographic audit log of every agent decision for regulatory compliance |
+| **Circuit Breakers** | Formal circuit-breaker pattern for Gemini, 2Factor.in, and OCR.space external dependencies |
+
 
 ---
 
