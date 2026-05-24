@@ -19,7 +19,7 @@
 ---
 ## 🎥 Demo Video
 
-[![OnboardAI Demo](https://github.com/raahulmaurya1/Onboard-Agentic-AI/blob/18eea35b968ead7f7187b9c3d103f973f366f5fd/Thumbnail.png)](https://youtu.be/OO37AeUx14Q)
+[![OnboardAI Demo]([https://github.com/raahulmaurya1/Onboard-Agentic-AI/blob/18eea35b968ead7f7187b9c3d103f973f366f5fd/Thumbnail.png](https://github.com/raahulmaurya1/raahulmaurya1-JatayuS5-Procoder/blob/4d9b0ef20454458b35b75ec691bec9cf7c65790b/Thumbnail.png))](https://youtu.be/OO37AeUx14Q)
 
 ## Table of Contents
 
@@ -120,7 +120,8 @@ This system is a fully autonomous **Agentic AI Decision Engine** built for regul
 ## ⚙️ Core Architecture
 
 
-<img src="https://github.com/raahulmaurya1/Onboard-Agentic-AI/blob/d0119d9381a2f4f8c0199b3817cb30b80277b29a/architecture_svg.svg" alt="My Image" style="width: 100%; height: auto; max-width: 500px;">
+<img src="https://github.com/raahulmaurya1/raahulmaurya1-JatayuS5-Procoder/blob/4d9b0ef20454458b35b75ec691bec9cf7c65790b/architecture_svg.svg
+" alt="My Image" style="width: 100%; height: auto; max-width: 500px;">
 
 *Overview*
 
@@ -236,7 +237,7 @@ Step 7: Final        →  execute_hybrid_freeze_tool() → 3-Tier Risk → APPRO
 ## Tool Selection Matrix
 
 
-<img src="https://github.com/raahulmaurya1/Onboard-Agentic-AI/blob/bc44a0ac198539d84cd58e325f4245516b4b298c/Tool%20Selection%20Matrix.png" alt="Tool Selection Matrix" style="width: 100%; height: auto; max-width: 500px;">
+<img src="https://github.com/raahulmaurya1/raahulmaurya1-JatayuS5-Procoder/blob/4d9b0ef20454458b35b75ec691bec9cf7c65790b/Tool%20Selection%20Matrix.png" alt="Tool Selection Matrix" style="width: 100%; height: auto; max-width: 500px;">
 ---
 ---
 
@@ -303,7 +304,7 @@ The **3-Tier Deterministic-Cognitive Risk Pipeline**. The most sophisticated com
 | **Storage** | Async fire-and-forget to `risk_evaluations` table with 128-dim feature vector |
 
 **Tier Architecture:**
-<img src="https://github.com/raahulmaurya1/Onboard-Agentic-AI/blob/ec2ee0084e800511a59289eac4bb74a0808b7325/risk_score1.jpg" alt="My Image" style="width: 100%; height: auto; max-width: 500px;">
+<img src="https://github.com/raahulmaurya1/raahulmaurya1-JatayuS5-Procoder/blob/4d9b0ef20454458b35b75ec691bec9cf7c65790b/risk_score1.jpg" alt="My Image" style="width: 100%; height: auto; max-width: 500px;">
 
 
 ---
@@ -627,7 +628,7 @@ The system uses **PostgreSQL with pgvector** for hybrid relational + vector stor
 
 
 ### Class diagram
-<img src="https://github.com/raahulmaurya1/Onboard-Agentic-AI/blob/597486f6f0408da4dff8aadc5120e72f8e13de19/class_doagram.png" alt="class daigram" style="width: 100%; height: auto; max-width: 500px;">
+<img src="https://github.com/raahulmaurya1/raahulmaurya1-JatayuS5-Procoder/blob/4d9b0ef20454458b35b75ec691bec9cf7c65790b/class_doagram.png" alt="class daigram" style="width: 100%; height: auto; max-width: 500px;">
 
 ### Layer Model
 
@@ -905,29 +906,29 @@ USER: "I want to open a business account for my trading firm"
 
 ### 1. High-Level System Architecture
 
-<img src="https://github.com/raahulmaurya1/Onboard-Agentic-AI/blob/ec2ee0084e800511a59289eac4bb74a0808b7325/High-Level%20System%20Architecture.jpg" alt="High-Level System Architecture" style="width: 100%; height: auto; max-width: 500px;">
+<img src="https://github.com/raahulmaurya1/raahulmaurya1-JatayuS5-Procoder/blob/4d9b0ef20454458b35b75ec691bec9cf7c65790b/High-Level%20System%20Architecture.jpg" alt="High-Level System Architecture" style="width: 100%; height: auto; max-width: 500px;">
 
 ---
 
 ### 2. Agent Workflow Sequence Diagram
 
-<img src="https://github.com/raahulmaurya1/Onboard-Agentic-AI/blob/ec2ee0084e800511a59289eac4bb74a0808b7325/Agent%20Workflow%20Sequence%20Diagram.jpg" alt="Agent Workflow Sequence Diagram" style="width: 100%; height: auto; max-width: 500px;">
+<img src="https://github.com/raahulmaurya1/raahulmaurya1-JatayuS5-Procoder/blob/4d9b0ef20454458b35b75ec691bec9cf7c65790b/Agent%20Workflow%20Sequence%20Diagram.jpg" alt="Agent Workflow Sequence Diagram" style="width: 100%; height: auto; max-width: 500px;">
 ---
 
 ### 3. Authentication Sequence Diagram
 
-<img src="https://github.com/raahulmaurya1/Onboard-Agentic-AI/blob/2014e9e0eb108d852fe384d4015ac669b840c425/auth.svg" alt="Authencation" style="width: 100%; height: auto; max-width: 500px;">
+<img src="https://github.com/raahulmaurya1/raahulmaurya1-JatayuS5-Procoder/blob/4d9b0ef20454458b35b75ec691bec9cf7c65790b/auth.svg" alt="Authencation" style="width: 100%; height: auto; max-width: 500px;">
 
 ---
 
 ### 4. Sequence Diagram - Account open(Retail, SME and Digital)
-<img src="https://github.com/raahulmaurya1/Onboard-Agentic-AI/blob/ec2ee0084e800511a59289eac4bb74a0808b7325/account_open.png" alt="Sequence Diagram - Account open" style="width: 100%; height: auto; max-width: 500px;">
+<img src="https://github.com/raahulmaurya1/raahulmaurya1-JatayuS5-Procoder/blob/4d9b0ef20454458b35b75ec691bec9cf7c65790b/account_open.png" alt="Sequence Diagram - Account open" style="width: 100%; height: auto; max-width: 500px;">
 
 ---
 
 ### 4. Parent Lifecycle System — Re-KYC & Reactivation
 
-<img src="https://github.com/raahulmaurya1/Onboard-Agentic-AI/blob/ec2ee0084e800511a59289eac4bb74a0808b7325/rekyc_reactivate.png" alt="Parent Lifecycle System — Re-KYC & Reactivation
+<img src="https://github.com/raahulmaurya1/raahulmaurya1-JatayuS5-Procoder/blob/4d9b0ef20454458b35b75ec691bec9cf7c65790b/rekyc_reactivate.png" alt="Parent Lifecycle System — Re-KYC & Reactivation
 " style="width: 100%; height: auto; max-width: 500px;">
 
 ---
