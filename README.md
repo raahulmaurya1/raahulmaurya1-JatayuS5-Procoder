@@ -19,8 +19,7 @@
 ---
 ## 🎥 Demo Video
 
-[![OnboardAI Demo]([https://github.com/raahulmaurya1/Onboard-Agentic-AI/blob/18eea35b968ead7f7187b9c3d103f973f366f5fd/Thumbnail.png](https://github.com/raahulmaurya1/raahulmaurya1-JatayuS5-Procoder/blob/4d9b0ef20454458b35b75ec691bec9cf7c65790b/Thumbnail.png))](https://youtu.be/OO37AeUx14Q)
-
+[![OnboardAI Demo](https://github.com/raahulmaurya1/raahulmaurya1-JatayuS5-Procoder/raw/43365b520a5c1b21bf3a4c470873f4ed44a6bfcb/Thumbnail.png)](https://youtu.be/OO37AeUx14Q)
 ## Table of Contents
 
 - [What is this System?](#-what-is-this-system)
@@ -291,7 +290,7 @@ class IntentCategory(str, Enum):
 
 ---
 
-### 3. ⚠️ Risk Agent — `app/agents/risk_agent.py`
+### 3.  Risk Agent — `app/agents/risk_agent.py`
 
 The **3-Tier Deterministic-Cognitive Risk Pipeline**. The most sophisticated component.
 
@@ -938,7 +937,7 @@ USER: "I want to open a business account for my trading firm"
 ### 1. 🧩 Modularity
 Every agent is a standalone, independently testable Python module with no circular dependencies. The `DecisionAgent` never directly imports service code — it dispatches through the tool handler interface. New tools can be added by declaring a function schema and adding one `elif` branch to `handle_tool_call()`.
 
-### 2. ⚖️ Fail-Open Resilience
+### 2.  Fail-Open Resilience
 The entire system is designed to **never block onboarding** due to an AI failure:
 - Risk engine errors → `_risk_action: PROCEED` (applicant flows through)
 - Gemini Tier 3 timeout (15s) → `additional_risk: 0` (no penalty)
