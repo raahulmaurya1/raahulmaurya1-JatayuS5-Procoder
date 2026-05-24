@@ -1,0 +1,129 @@
+.wrapper {
+  max-width: 850px;
+  max-height: 85vh;
+  margin: 0 auto;
+  background: #ffffff;
+  border-radius: 20px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.10);
+  font-family: 'Inter', Arial, sans-serif;
+  animation: slideUpFade 0.5s ease-out forwards;
+}
+
+@keyframes slideUpFade {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Header banner ── */
+.headerRed {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  padding: 36px 32px 28px;
+  text-align: center;
+}
+
+.title {
+  color: #ffffff;
+  font-size: 22px;
+  font-weight: 700;
+  margin-top: 12px;
+  margin-bottom: 6px;
+  letter-spacing: -0.3px;
+}
+
+/* ── Animated red cross SVG ── */
+.iconWrap {
+  display: flex;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+.crossCircle {
+  stroke: #ffffff;
+  stroke-width: 3;
+  fill: none;
+  stroke-dasharray: 283;
+  stroke-dashoffset: 283;
+  animation: drawCircle 0.6s ease forwards;
+  animation-delay: 0.1s;
+}
+
+.crossLine {
+  stroke: #ffffff;
+  stroke-width: 3.5;
+  fill: none;
+  stroke-linecap: round;
+  stroke-dasharray: 40;
+  stroke-dashoffset: 40;
+  animation: drawLine 0.3s ease forwards;
+}
+
+.crossLine1 {
+  animation-delay: 0.6s;
+}
+
+.crossLine2 {
+  animation-delay: 0.8s;
+}
+
+@keyframes drawCircle {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes drawLine {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* ── Body ── */
+.body {
+  padding: 32px;
+}
+
+.description {
+  font-size: 14px;
+  color: #4a5568;
+  margin-bottom: 28px;
+  line-height: 1.6;
+}
+
+/* ── App ID card (Error) ── */
+.appCard {
+  background: #fef2f2;
+  border: 1.5px solid #fca5a5;
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 24px;
+  text-align: center;
+  animation: slideUpFade 0.4s ease-out forwards;
+  animation-delay: 0.2s;
+  opacity: 0;
+}
+
+.appCardLabel {
+  font-size: 11px;
+  font-weight: 700;
+  color: #991b1b;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 8px;
+}
+
+.appCardValue {
+  font-size: 13px;
+  font-weight: 700;
+  color: #7f1d1d;
+  letter-spacing: 0.5px;
+  word-break: break-all;
+  font-family: monospace;
+}

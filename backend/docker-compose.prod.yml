@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:alpine
+    container_name: onboardai_redis_prod
+    restart: always
+    command: redis-server --requirepass ${REDIS_PASSWORD} --appendonly yes
+    volumes:
+      - redis_data_prod:/data
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: onboardai_backend_prod
+    restart: always
+    depends_on:
+      - redis
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - BUILDX_METADATA_PROVENANCE=disabled
+      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_SYNC_URL=${DATABASE_SYNC_URL}
+      - REDIS_URL=${REDIS_URL}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - SUPABASE_STORAGE_ENDPOINT=${SUPABASE_STORAGE_ENDPOINT}
+      - SUPABASE_STORAGE_ACCESS_KEY=${SUPABASE_STORAGE_ACCESS_KEY}
+      - SUPABASE_STORAGE_SECRET_KEY=${SUPABASE_STORAGE_SECRET_KEY}
+      - SUPABASE_STORAGE_REGION=${SUPABASE_STORAGE_REGION:-auto}
+      - CORS_ORIGINS=${CORS_ORIGINS}
+      - SENTRY_DSN=${SENTRY_DSN}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+      - TWO_FACTOR_API_KEY=${TWO_FACTOR_API_KEY}
+      - OCR_SPACE_API_KEY=${OCR_SPACE_API_KEY}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health/ready"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  frontend:
+    build:
+      context: ../frontend
+      args:
+        - REACT_APP_API_BASE_URL=${API_BASE_URL}
+    container_name: onboardai_frontend_prod
+    restart: always
+    ports:
+      - "3000:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  admin:
+    build:
+      context: ../admin
+      args:
+        - VITE_API_BASE_URL=${API_BASE_URL}
+    container_name: onboardai_admin_prod
+    restart: always
+    ports:
+      - "3001:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  redis_data_prod:

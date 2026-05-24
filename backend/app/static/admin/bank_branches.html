@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin - Bank Branches Management</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    
+    :root {
+      --primary: #0d9e6e;
+      --primary-hover: #06b87a;
+      --text-main: #1a2b4a;
+      --text-muted: #64748b;
+      --bg-body: #f8fafc;
+      --bg-card: #ffffff;
+      --border: #e2e8f0;
+      --danger: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-body);
+      color: var(--text-main);
+      padding: 32px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .btn {
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: none;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-main);
+    }
+
+    /* Table Styles */
+    .card {
+      background: var(--bg-card);
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+      margin-bottom: 32px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th {
+      background: #f1f5f9;
+      padding: 14px 20px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    td {
+      padding: 16px 20px;
+      border-top: 1px solid var(--border);
+      font-size: 14px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .action-btn {
+      padding: 6px 12px;
+      font-size: 12px;
+      border-radius: 6px;
+    }
+
+    /* Modal Styles */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15, 23, 42, 0.6);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+      z-index: 1000;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal {
+      background: var(--bg-card);
+      width: 100%;
+      max-width: 500px;
+      border-radius: 12px;
+      padding: 24px;
+      transform: translateY(20px);
+      transition: transform 0.2s;
+    }
+
+    .modal-overlay.active .modal {
+      transform: translateY(0);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--text-muted);
+    }
+
+    .form-group input, .form-group textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 14px;
+    }
+
+    .form-group input:focus, .form-group textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(13, 158, 110, 0.1);
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Bank Branches</h1>
+      <button class="btn btn-primary" onclick="openModal('create')">+ Add Branch</button>
+    </div>
+
+    <div class="card">
+      <table>
+        <thead>
+          <tr>
+            <th>IFSC</th>
+            <th>Branch Name</th>
+            <th>Account Types</th>
+            <th>Manager</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="table-body">
+          <!-- Rows will be injected via JS -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="modal-title">Add Branch</h2>
+        <button class="btn btn-outline" style="padding: 4px 8px; border:none;" onclick="closeModal()">✕</button>
+      </div>
+      <form id="branch-form" onsubmit="handleFormSubmit(event)">
+        <div class="form-group">
+          <label>IFSC Code *</label>
+          <input type="text" id="input-ifsc" required />
+        </div>
+        <div class="form-group">
+          <label>Branch Name *</label>
+          <input type="text" id="input-name" required />
+        </div>
+        <div class="form-group">
+          <label>Branch Address *</label>
+          <textarea id="input-address" rows="2" required></textarea>
+        </div>
+        <div class="form-group">
+          <label>Supported Account Types *</label>
+          <input type="text" id="input-type" placeholder="e.g. Retail, SME, Digital" required />
+        </div>
+        <div class="form-group">
+          <label>Manager Name</label>
+          <input type="text" id="input-manager" />
+        </div>
+        <div class="form-group">
+          <label>Manager Email</label>
+          <input type="email" id="input-email" />
+        </div>
+        <div class="form-group">
+          <label>Manager Phone</label>
+          <input type="text" id="input-phone" />
+        </div>
+        <div class="form-group">
+          <label>Relationship Officer</label>
+          <input type="text" id="input-rm" />
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Branch</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    let branches = [];
+    let modalMode = 'create'; // 'create' | 'edit'
+
+    const tableBody = document.getElementById('table-body');
+    const modal = document.getElementById('modal');
+    const form = document.getElementById('branch-form');
+
+    async function fetchBranches() {
+      try {
+        const res = await fetch('/api/v1/bank-branches');
+        branches = await res.json();
+        renderTable();
+      } catch (err) {
+        console.error('Failed to fetch branches', err);
+      }
+    }
+
+    function renderTable() {
+      tableBody.innerHTML = '';
+      branches.forEach(b => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="font-family: monospace; font-weight:600;">${b.ifsc}</td>
+          <td>
+            <div style="font-weight:600; color:var(--text-main);">${b.branch_name}</div>
+            <div style="font-size:12px; color:var(--text-muted); margin-top:4px;">${b.branch_address}</div>
+          </td>
+          <td>
+            <span style="background:#e0f2fe; color:#0284c7; padding:4px 8px; border-radius:4px; font-size:12px; font-weight:600;">
+              ${b.supported_account_type}
+            </span>
+          </td>
+          <td>
+            ${b.manager_name ? `<div style="font-weight:500;">${b.manager_name}</div>` : '<span style="color:#cbd5e1;">-</span>'}
+            ${b.manager_email ? `<div style="font-size:12px; color:var(--text-muted);">${b.manager_email}</div>` : ''}
+          </td>
+          <td>
+            <div class="actions">
+              <button class="btn btn-outline action-btn" onclick="openModal('edit', '${b.ifsc}')">Edit</button>
+              <button class="btn btn-danger action-btn" onclick="deleteBranch('${b.ifsc}')">Delete</button>
+            </div>
+          </td>
+        `;
+        tableBody.appendChild(tr);
+      });
+    }
+
+    function openModal(mode, ifsc = null) {
+      modalMode = mode;
+      form.reset();
+      
+      const ifscInput = document.getElementById('input-ifsc');
+      
+      if (mode === 'edit') {
+        document.getElementById('modal-title').innerText = 'Edit Branch';
+        ifscInput.disabled = true; // IFSC cannot be changed
+        
+        const b = branches.find(x => x.ifsc === ifsc);
+        if (b) {
+          ifscInput.value = b.ifsc;
+          document.getElementById('input-name').value = b.branch_name;
+          document.getElementById('input-address').value = b.branch_address;
+          document.getElementById('input-type').value = b.supported_account_type;
+          document.getElementById('input-manager').value = b.manager_name || '';
+          document.getElementById('input-email').value = b.manager_email || '';
+          document.getElementById('input-phone').value = b.manager_phone || '';
+          document.getElementById('input-rm').value = b.relationship_officer || '';
+        }
+      } else {
+        document.getElementById('modal-title').innerText = 'Add Branch';
+        ifscInput.disabled = false;
+      }
+      
+      modal.classList.add('active');
+    }
+
+    function closeModal() {
+      modal.classList.remove('active');
+    }
+
+    async function handleFormSubmit(e) {
+      e.preventDefault();
+      
+      const payload = {
+        ifsc: document.getElementById('input-ifsc').value,
+        branch_name: document.getElementById('input-name').value,
+        branch_address: document.getElementById('input-address').value,
+        supported_account_type: document.getElementById('input-type').value,
+        manager_name: document.getElementById('input-manager').value || null,
+        manager_email: document.getElementById('input-email').value || null,
+        manager_phone: document.getElementById('input-phone').value || null,
+        relationship_officer: document.getElementById('input-rm').value || null,
+      };
+
+      try {
+        const url = modalMode === 'create' 
+          ? '/api/v1/admin/bank-branches'
+          : `/api/v1/admin/bank-branches/${payload.ifsc}`;
+          
+        const method = modalMode === 'create' ? 'POST' : 'PUT';
+        
+        const res = await fetch(url, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          alert('Error: ' + err.detail);
+          return;
+        }
+
+        closeModal();
+        fetchBranches();
+      } catch (err) {
+        alert('Failed to save branch');
+      }
+    }
+
+    async function deleteBranch(ifsc) {
+      if (!confirm(`Are you sure you want to delete branch ${ifsc}?`)) return;
+      
+      try {
+        const res = await fetch(`/api/v1/admin/bank-branches/${ifsc}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error('Failed to delete');
+        fetchBranches();
+      } catch (err) {
+        alert('Failed to delete branch');
+      }
+    }
+
+    // Initial load
+    fetchBranches();
+  </script>
+</body>
+</html>

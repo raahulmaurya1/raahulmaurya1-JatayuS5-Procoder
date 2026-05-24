@@ -1,0 +1,71 @@
+# ==============================================================
+# OnboardAI Backend — Production Dependencies
+# ==============================================================
+# Only DIRECT dependencies are listed here. Transitive deps
+# are resolved automatically by pip. Pin versions for stability.
+# ==============================================================
+
+# --- Web Framework & Server ---
+fastapi==0.135.3
+uvicorn==0.43.0
+gunicorn==25.3.0
+starlette==1.0.0
+python-multipart==0.0.22
+
+# --- Data Validation & Config ---
+pydantic==2.12.5
+pydantic-settings==2.13.1
+python-dotenv==1.2.2
+
+# --- Database (Supabase PostgreSQL) ---
+SQLAlchemy==2.0.49
+asyncpg==0.31.0
+alembic==1.18.4
+psycopg2-binary==2.9.11
+
+# --- Task Queue (Celery + Upstash Redis) ---
+celery==5.6.3
+redis==7.4.0
+
+# --- Object Storage (Supabase S3-compatible) ---
+boto3==1.43.6
+
+# --- AI / LLM ---
+google-generativeai==0.8.6
+langgraph==1.1.6
+
+# --- Document Processing & OCR ---
+PyMuPDF==1.27.2.2
+pillow==12.2.0
+magika==1.0.2
+requests==2.33.1
+
+# --- Face Verification & Liveness ---
+deepface==0.0.99
+mediapipe==0.10.33
+opencv-contrib-python==4.11.0.86
+numpy==1.26.4
+tensorflow==2.16.2
+tf_keras==2.16.0
+
+# --- Auth & Security ---
+python-jose==3.5.0
+python-ulid==3.1.0
+passlib==1.7.4
+bcrypt==5.0.0
+
+# --- Email (OTP dispatch) ---
+aiosmtplib==5.1.0
+
+# --- Utility ---
+rapidfuzz==3.12.1
+
+# --- Observability ---
+loguru==0.7.3
+sentry-sdk[fastapi]==2.59.0
+slowapi==0.1.9
+
+
+
+pgvector
+google-genai

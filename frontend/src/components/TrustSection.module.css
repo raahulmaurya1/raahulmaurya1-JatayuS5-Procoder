@@ -1,0 +1,364 @@
+.section {
+  background: var(--white);
+  padding: 5rem 2rem;
+}
+
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+/* Financial Planning Section */
+.financialSection {
+  margin-bottom: 6rem;
+}
+
+.financialGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+  margin-bottom: 4rem;
+}
+
+.financialCard {
+  padding: 1.8rem;
+  border-radius: var(--radius-lg);
+  border: 2px solid;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85));
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.financialCard:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
+}
+
+.card_primary {
+  border-color: rgba(237, 173, 0, 0.4);
+  background: linear-gradient(135deg, rgba(237, 173, 0, 0.02), rgba(237, 173, 0, 0.06));
+}
+
+.card_primary:hover {
+  border-color: rgba(237, 173, 0, 0.8);
+  box-shadow: 0 16px 40px rgba(237, 173, 0, 0.15);
+}
+
+.card_secondary {
+  border-color: rgba(13, 148, 136, 0.4);
+  background: linear-gradient(135deg, rgba(13, 148, 136, 0.02), rgba(13, 148, 136, 0.06));
+}
+
+.card_secondary:hover {
+  border-color: rgba(13, 148, 136, 0.8);
+  box-shadow: 0 16px 40px rgba(13, 148, 136, 0.15);
+}
+
+.card_tertiary {
+  border-color: rgba(255, 102, 0, 0.4);
+  background: linear-gradient(135deg, rgba(255, 102, 0, 0.02), rgba(255, 102, 0, 0.06));
+}
+
+.card_tertiary:hover {
+  border-color: rgba(255, 102, 0, 0.8);
+  box-shadow: 0 16px 40px rgba(255, 102, 0, 0.15);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
+}
+
+.cardIcon {
+  font-size: 2.2rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.cardTitle {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--dark);
+  line-height: 1.2;
+  margin-bottom: 0.2rem;
+}
+
+.cardSubtitle {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(237, 173, 0, 0.8);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Calculator Content */
+.calculatorContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.inputField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.inputField label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--dark);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.valueDisplay {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: rgba(237, 173, 0, 0.9);
+  font-family: var(--font-display);
+  line-height: 1.2;
+}
+
+.slider {
+  width: 100%;
+  height: 5px;
+  border-radius: 3px;
+  background: linear-gradient(to right, rgba(237, 173, 0, 0.2), rgba(237, 173, 0, 0.3));
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(237, 173, 0, 0.9), rgba(237, 173, 0, 0.75));
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(237, 173, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+.slider::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 3px 10px rgba(237, 173, 0, 0.4);
+}
+
+.slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(237, 173, 0, 0.9), rgba(237, 173, 0, 0.75));
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(237, 173, 0, 0.3);
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.slider::-moz-range-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 3px 10px rgba(237, 173, 0, 0.4);
+}
+
+.rangeLabels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  color: #999;
+  font-weight: 500;
+}
+
+.resultsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.8rem;
+  background: linear-gradient(135deg, rgba(237, 173, 0, 0.08), rgba(237, 173, 0, 0.04));
+  padding: 1rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(237, 173, 0, 0.15);
+}
+
+.resultItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  text-align: center;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.resultLabel {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  min-height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.2;
+}
+
+.resultValue {
+  font-size: 1rem;
+  font-weight: 700;
+  color: rgba(237, 173, 0, 0.9);
+  font-family: var(--font-display);
+  white-space: nowrap;
+}
+
+/* Header */
+.header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.sectionLabel {
+  display: inline-block;
+  background: rgba(237, 173, 0, 0.1);
+  border: 1px solid rgba(237, 173, 0, 0.28);
+  border-radius: var(--radius-full);
+  padding: 6px 18px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #b8860b;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  font-weight: 800;
+  color: var(--dark);
+  letter-spacing: -0.02em;
+}
+
+/* Cards grid */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.card {
+  padding: 1.8rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: var(--cream);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.08);
+}
+
+.stars {
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+  letter-spacing: 2px;
+}
+
+.text {
+  font-size: 0.93rem;
+  color: #444;
+  line-height: 1.76;
+  margin-bottom: 1.5rem;
+  font-style: italic;
+}
+
+.author {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(237, 173, 0, 0.2), rgba(13, 148, 136, 0.2));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  flex-shrink: 0;
+}
+
+.name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--dark);
+}
+
+.role {
+  font-size: 0.78rem;
+  color: #888;
+}
+
+@media (max-width: 700px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .financialGrid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .cardTitle {
+    font-size: 1rem;
+  }
+
+  .cardIcon {
+    font-size: 1.8rem;
+  }
+
+  .section {
+    padding: 3rem 1.5rem;
+  }
+
+  .resultsGrid {
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+  }
+
+  .resultValue {
+    font-size: 1rem;
+  }
+
+  .financialCard {
+    padding: 1.3rem;
+  }
+
+  .calculatorContent {
+    gap: 1rem;
+  }
+
+  .inputField {
+    gap: 0.3rem;
+  }
+
+  .valueDisplay {
+    font-size: 0.95rem;
+  }
+}
